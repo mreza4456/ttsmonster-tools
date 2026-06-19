@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,6 +92,9 @@
     color:var(--muted);
     margin-bottom:8px;
   }
+
+  .field-block{ margin-bottom:18px; }
+  .field-block:last-of-type{ margin-bottom:0; }
 
   .token-row{ display:flex; gap:8px; }
   input[type=text], input[type=password]{
@@ -187,31 +190,19 @@
     transition:width .4s ease;
   }
 
-  /* Voice list */
-  .voice-list{
-    display:flex; flex-direction:column; gap:8px;
-    max-height:280px; overflow-y:auto;
-    margin-top:4px;
-  }
-  .voice-item{
+  .voice-confirm{
     display:flex; align-items:center; justify-content:space-between;
-    background:#0d0a16; border:1px solid var(--line);
-    border-radius:10px; padding:11px 13px;
-    cursor:pointer;
-    transition:.12s;
+    background:#0d0a16; border:1px solid rgba(92,232,160,.35);
+    border-radius:10px; padding:12px 14px;
+    margin-top:6px;
   }
-  .voice-item:hover{ border-color:var(--pink); }
-  .voice-item.selected{ border-color:var(--good); background:rgba(92,232,160,.06); }
-  .voice-name{ font-weight:600; font-size:13.5px; }
-  .voice-meta{ font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:2px; }
-  .voice-check{
-    width:18px; height:18px; border-radius:50%;
-    border:1.5px solid var(--line);
-    flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:11px; color:var(--bg);
+  .voice-confirm .voice-name{ font-weight:600; font-size:13.5px; }
+  .voice-confirm .voice-meta{ font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:2px; }
+  .voice-confirm .voice-tag{
+    font-size:11px; font-family:'JetBrains Mono',monospace;
+    color:var(--good); border:1px solid rgba(92,232,160,.35);
+    padding:3px 8px; border-radius:6px; flex-shrink:0;
   }
-  .voice-item.selected .voice-check{ background:var(--good); border-color:var(--good); content:'✓'; }
 
   /* Output panel */
   #output{ display:none; }
@@ -276,20 +267,28 @@
 <body>
 <div class="wrap">
 
-  <div class="eyebrow">UsbiafCreativeStudio · Widget Tooling</div>
-  <h1>Hubungkan <span>TTS Monster</span></h1>
-  <p class="sub">Masukkan API token, validasi ke TTS Monster, pilih suara — lalu generate URL proxy terenkripsi siap pakai di StreamElements.</p>
+  <div class="eyebrow">Nemuneko Studio · Widget Tooling</div>
+  <h1>Connect <span>TTS Monster</span></h1>
+  <p class="sub">Enter your API token and Voice ID, validate your account, then generate an encrypted proxy URL ready to use in your StreamElements widget.</p>
 
-  <!-- STEP 1: INPUT TOKEN -->
+  <!-- STEP 1: INPUT TOKEN + VOICE ID -->
   <div class="panel">
-    <label for="tokenInput">API Token</label>
-    <div class="token-row">
-      <input type="password" id="tokenInput" placeholder="ttsm_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-      <button class="icon-btn" id="toggleVisibility" title="Tampilkan/sembunyikan">👁</button>
+    <div class="field-block">
+      <label for="tokenInput">API Token</label>
+      <div class="token-row">
+        <input type="password" id="tokenInput" placeholder="ttsm_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <button class="icon-btn" id="toggleVisibility" title="Show/hide">👁</button>
+      </div>
+      <p class="hint">Get your token at <a href="https://console.tts.monster" target="_blank" rel="noopener">console.tts.monster</a> → profile icon → "API Token" section.</p>
     </div>
-    <p class="hint">Ambil token di <a href="https://console.tts.monster" target="_blank" rel="noopener">console.tts.monster</a> → ikon profil → bagian "API Token".</p>
 
-    <button class="btn-primary" id="testBtn">Cek Token & Muat Voice</button>
+    <div class="field-block">
+      <label for="voiceIdInput">Voice ID</label>
+      <input type="text" id="voiceIdInput" placeholder="e.g. 4d3f1f3a-..." autocomplete="off">
+      <p class="hint">Copy the Voice ID of the voice you want to use directly from your TTS Monster dashboard.</p>
+    </div>
+
+    <button class="btn-primary" id="testBtn">Validate Token & Voice</button>
 
     <div class="status" id="status">
       <span class="dot"></span>
@@ -297,57 +296,64 @@
     </div>
   </div>
 
-  <!-- STEP 2: USAGE + PILIH VOICE -->
+  <!-- STEP 2: USAGE + VOICE CONFIRMATION -->
   <div class="panel" id="result">
     <div class="usage-row">
-      <span>Pemakaian karakter <b id="planName"></b></span>
+      <span>Character usage <b id="planName"></b></span>
       <span><b id="usageText">0 / 0</b></span>
     </div>
     <div class="bar"><div class="bar-fill" id="usageBar" style="width:0%"></div></div>
 
     <div style="margin-top:20px;">
-      <label>Pilih suara (klik untuk pakai)</label>
-      <div class="voice-list" id="voiceList"></div>
+      <label>Voice in use</label>
+      <div class="voice-confirm">
+        <div>
+          <div class="voice-name" id="confirmVoiceName">—</div>
+          <div class="voice-meta" id="confirmVoiceMeta">—</div>
+        </div>
+        <div class="voice-tag">✓ ready</div>
+      </div>
     </div>
 
-    <button class="btn-primary" id="generateBtn" disabled style="margin-top:20px;">
-      Generate URL Proxy
+    <button class="btn-primary" id="generateBtn" style="margin-top:20px;">
+      Generate Proxy URL
     </button>
   </div>
 
   <!-- STEP 3: OUTPUT URL -->
   <div class="panel" id="output">
     <div class="warn-box">
-      <strong>⚠ Jaga kerahasiaan URL ini.</strong> URL mengandung sesi terenkripsi yang berisi token kamu. Jangan dibagikan ke publik — hanya pakai di StreamElements widget milikmu.
+      <strong>⚠ Keep this URL private.</strong> It contains an encrypted session with your token embedded. Do not share it publicly — use it only in your own StreamElements widget.
     </div>
 
-    <span class="field-label">Voice ID terpilih</span>
+    <span class="field-label">Selected Voice ID</span>
     <div class="copy-box">
       <code id="voiceIdOut">—</code>
       <button onclick="copyText('voiceIdOut')">Copy</button>
     </div>
 
-    <span class="field-label">URL Proxy Terenkripsi (untuk StreamElements)</span>
+    <span class="field-label">Encrypted Proxy URL (for StreamElements)</span>
     <div class="copy-box">
       <code id="proxyUrlOut">—</code>
       <button onclick="copyText('proxyUrlOut')">Copy</button>
     </div>
 
     <div class="steps">
-      <div><span class="num">1</span>Di StreamElements, buka overlay → <b>Custom Widget</b> → tab <b>JS</b>.</div>
-      <div><span class="num">2</span>Paste URL Proxy ke variabel <b>PROXY_URL</b> di widget.</div>
-      <div><span class="num">3</span>Tidak perlu isi Voice ID di widget — sudah embed di URL.</div>
-      <div><span class="num">4</span>Tambahkan overlay ke OBS sebagai <b>Browser Source</b>.</div>
+      <div><span class="num">1</span>In StreamElements, open your overlay → <b>Custom Widget</b> → <b>JS</b> tab.</div>
+      <div><span class="num">2</span>Paste the Proxy URL into your widget's <b>PROXY_URL</b> variable.</div>
+      <div><span class="num">3</span>No need to set a Voice ID in the widget — it's already embedded in the URL.</div>
+      <div><span class="num">4</span>Add the overlay to OBS as a <b>Browser Source</b>.</div>
     </div>
   </div>
 
-  <p class="footer-note">Token dienkripsi di browser menggunakan Web Crypto API —<br>tidak pernah dikirim atau disimpan di server ini dalam bentuk aslinya.</p>
+  <p class="footer-note">Your token is encrypted in the browser using the Web Crypto API —<br>it is never sent to or stored on this server in its raw form.</p>
 
 </div>
 
 <script>
-// ─── Elemen ───────────────────────────────────────────────
+// ─── Elements ─────────────────────────────────────────────
 const tokenInput     = document.getElementById('tokenInput');
+const voiceIdInput   = document.getElementById('voiceIdInput');
 const toggleBtn      = document.getElementById('toggleVisibility');
 const testBtn        = document.getElementById('testBtn');
 const generateBtn    = document.getElementById('generateBtn');
@@ -355,33 +361,32 @@ const status         = document.getElementById('status');
 const statusText     = document.getElementById('statusText');
 const resultPanel    = document.getElementById('result');
 const outputPanel    = document.getElementById('output');
-const voiceList      = document.getElementById('voiceList');
 
-let selectedVoiceId  = null;
-let validToken       = null;
+let validToken  = null;
+let validVoiceId = null;
 
-// Ingat token terakhir di browser (kemudahan lokal, tidak ke server)
-tokenInput.value = localStorage.getItem('ttsm_last_token') || '';
+// Remember last token/voice locally (not sent to any server)
+tokenInput.value   = localStorage.getItem('ttsm_last_token')    || '';
+voiceIdInput.value = localStorage.getItem('ttsm_last_voice_id') || '';
 
-// ─── Toggle password ──────────────────────────────────────
+// ─── Toggle password visibility ───────────────────────────
 toggleBtn.addEventListener('click', () => {
   tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
   toggleBtn.textContent = tokenInput.type === 'password' ? '👁' : '🙈';
 });
 
-// ─── Helper status ────────────────────────────────────────
+// ─── Status helper ────────────────────────────────────────
 function setStatus(kind, text){
   status.className = 'status show ' + kind;
   statusText.textContent = text;
 }
 
-// ─── Enkripsi token + voiceId → base64url session ────────
-// Menggunakan AES-GCM dengan key yang di-derive dari origin
-// sehingga session hanya bisa di-decode oleh server yang sama.
-// SECRET di sini adalah konstanta yang HARUS sama persis
-// dengan ENCRYPT_SECRET di api/tts.js kamu.
-// Ganti nilai ini dengan string acak milikmu sendiri.
-const SHARED_SECRET = 'ganti-dengan-rahasia-acakmu-32char!!';
+// ─── Encrypt token + voiceId → base64url session ─────────
+// Uses AES-GCM with a key derived from a shared secret,
+// so the session can only be decoded by the matching server.
+// SHARED_SECRET here MUST match ENCRYPT_SECRET in your api/tts.js.
+// Replace this value with your own random string.
+const SHARED_SECRET = 'replace-with-your-own-random-secret-32char!!';
 
 async function deriveKey(secret) {
   const enc = new TextEncoder();
@@ -403,7 +408,7 @@ async function encryptSession(token, voiceId) {
   const plain = new TextEncoder().encode(JSON.stringify({ token, voiceId, ts: Date.now() }));
   const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
 
-  // gabungkan iv + ciphertext → base64url
+  // combine iv + ciphertext → base64url
   const combined = new Uint8Array(iv.byteLength + cipher.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(cipher), iv.byteLength);
@@ -411,83 +416,58 @@ async function encryptSession(token, voiceId) {
     .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 
-// ─── Cek Token ────────────────────────────────────────────
+// ─── Validate Token + Voice ID ─────────────────────────────
 testBtn.addEventListener('click', async () => {
-  const token = tokenInput.value.trim();
-  if(!token){ setStatus('err', 'Isi dulu API token-nya.'); return; }
+  const token   = tokenInput.value.trim();
+  const voiceId = voiceIdInput.value.trim();
+
+  if(!token){ setStatus('err', 'Please enter your API token.'); return; }
+  if(!voiceId){ setStatus('err', 'Please enter a Voice ID.'); return; }
 
   testBtn.disabled = true;
   resultPanel.style.display = 'none';
   outputPanel.style.display = 'none';
-  selectedVoiceId = null;
-  generateBtn.disabled = true;
-  setStatus('loading', 'Menghubungi TTS Monster...');
+  validToken = null;
+  validVoiceId = null;
+  setStatus('loading', 'Contacting TTS Monster...');
 
   try {
     const res  = await fetch('/api/test-key', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token })
+      body: JSON.stringify({ token, voiceId })
     });
     const data = await res.json();
 
     if(!res.ok || !data.valid){
-      setStatus('err', data.error || 'Token ditolak.');
+      setStatus('err', data.error || 'Token or Voice ID was rejected.');
       testBtn.disabled = false;
       return;
     }
 
-    validToken = token;
+    validToken   = token;
+    validVoiceId = voiceId;
     localStorage.setItem('ttsm_last_token', token);
-    setStatus('ok', 'Token valid. Akun terhubung ✓ — pilih suara di bawah.');
+    localStorage.setItem('ttsm_last_voice_id', voiceId);
+    setStatus('ok', 'Token and Voice ID validated ✓ — ready to generate your proxy URL.');
 
     // Usage
-    const used      = data.user.character_usage     || 0;
-    const allowance = data.user.character_allowance  || 0;
-    document.getElementById('planName').textContent  = '(' + (data.user.current_plan || '-') + ')';
+    const used      = data.user?.character_usage     || 0;
+    const allowance = data.user?.character_allowance || 0;
+    document.getElementById('planName').textContent  = '(' + (data.user?.current_plan || '-') + ')';
     document.getElementById('usageText').textContent = used.toLocaleString() + ' / ' + allowance.toLocaleString();
     const pct = allowance ? Math.min(100, (used / allowance) * 100) : 0;
     document.getElementById('usageBar').style.width  = pct + '%';
 
-    // Voice list
-    const allVoices = [
-      ...(data.customVoices || []).map(v => ({ ...v, custom: true })),
-      ...(data.voices || [])
-    ];
-    voiceList.innerHTML = '';
-
-    if(allVoices.length === 0){
-      voiceList.innerHTML = '<p style="color:var(--muted);font-size:12.5px;">Tidak ada voice ditemukan.</p>';
-    }
-
-    allVoices.forEach(v => {
-      const item = document.createElement('div');
-      item.className = 'voice-item';
-      item.innerHTML = `
-        <div>
-          <div class="voice-name">${v.name}${v.custom ? ' · custom' : ''}</div>
-          <div class="voice-meta">${v.metadata || v.language || v.voice_id || ''}</div>
-        </div>
-        <div class="voice-check" id="check-${v.voice_id}"></div>
-      `;
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.voice-item').forEach(el => {
-          el.classList.remove('selected');
-          el.querySelector('.voice-check').textContent = '';
-        });
-        item.classList.add('selected');
-        item.querySelector('.voice-check').textContent = '✓';
-        selectedVoiceId = v.voice_id;
-        generateBtn.disabled = false;
-        outputPanel.style.display = 'none'; // reset output kalau ganti voice
-      });
-      voiceList.appendChild(item);
-    });
+    // Voice confirmation
+    document.getElementById('confirmVoiceName').textContent = data.voice?.name || voiceId;
+    document.getElementById('confirmVoiceMeta').textContent = data.voice?.metadata || data.voice?.language || voiceId;
 
     resultPanel.style.display = 'block';
+    outputPanel.style.display = 'none';
 
   } catch(err) {
-    setStatus('err', 'Gagal konek ke server proxy.');
+    setStatus('err', 'Failed to reach the proxy server.');
   } finally {
     testBtn.disabled = false;
   }
@@ -495,24 +475,24 @@ testBtn.addEventListener('click', async () => {
 
 // ─── Generate URL ─────────────────────────────────────────
 generateBtn.addEventListener('click', async () => {
-  if(!validToken || !selectedVoiceId) return;
+  if(!validToken || !validVoiceId) return;
 
   generateBtn.disabled = true;
-  generateBtn.textContent = 'Mengenkripsi...';
+  generateBtn.textContent = 'Encrypting...';
 
   try {
-    const session  = await encryptSession(validToken, selectedVoiceId);
+    const session  = await encryptSession(validToken, validVoiceId);
     const proxyUrl = window.location.origin + '/api/tts?session=' + session;
 
-    document.getElementById('voiceIdOut').textContent  = selectedVoiceId;
+    document.getElementById('voiceIdOut').textContent  = validVoiceId;
     document.getElementById('proxyUrlOut').textContent = proxyUrl;
     outputPanel.style.display = 'block';
     outputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(err) {
-    setStatus('err', 'Gagal mengenkripsi sesi: ' + err.message);
+    setStatus('err', 'Failed to encrypt session: ' + err.message);
   } finally {
     generateBtn.disabled = false;
-    generateBtn.textContent = 'Generate URL Proxy';
+    generateBtn.textContent = 'Generate Proxy URL';
   }
 });
 
