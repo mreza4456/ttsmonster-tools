@@ -214,7 +214,7 @@ body {
     margin-bottom:8px;
   }
 
-  .token-row{ display:flex; gap:8px; max-width:520px; }
+  .token-row{ display:flex; gap:8px;  }
   input[type=text], input[type=password]{
     width:100%;
     background:#0d0a16;
