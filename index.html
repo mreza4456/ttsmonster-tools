@@ -1,386 +1,184 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TTS Monster · Setup Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg: #0c0a14;
-    --panel: #15111f;
-    --panel-2: #1c1729;
-    --line: #2a2438;
-    --pink: #ff5fa2;
-    --purple: #9b6bff;
-    --text: #ece6f5;
-    --muted: #8b83a3;
-    --good: #5ce8a0;
-    --bad: #ff6b6b;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(circle at 15% 0%, rgba(155,107,255,.15), transparent 45%),
-      radial-gradient(circle at 85% 100%, rgba(255,95,162,.12), transparent 45%),
-      var(--bg);
-    color:var(--text);
-    font-family:'Space Grotesk', sans-serif;
-    min-height:100vh;
-    padding:48px 20px;
-  }
-  .wrap{ max-width:620px; margin:0 auto; }
-
-  .eyebrow{
-    font-family:'JetBrains Mono', monospace;
-    font-size:12px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--purple);
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:10px;
-  }
-  .eyebrow::before{
-    content:'';
-    width:6px;height:6px;border-radius:50%;
-    background:var(--pink);
-    box-shadow:0 0 8px var(--pink);
-    animation:blink 1.6s infinite;
-  }
-  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.25} }
-
-  h1{
-    font-size:30px;
-    font-weight:700;
-    margin:0 0 6px;
-    line-height:1.15;
-  }
-  h1 span{ color:var(--pink); }
-  .sub{
-    color:var(--muted);
-    font-size:14.5px;
-    line-height:1.6;
-    margin:0 0 32px;
-    max-width:48ch;
-  }
-
-  .panel{
-    background:linear-gradient(180deg, var(--panel), var(--panel-2));
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:26px;
-    margin-bottom:18px;
-    position:relative;
-    overflow:hidden;
-  }
-  .panel::before{
-    content:'';
-    position:absolute; top:0; left:0; right:0; height:1px;
-    background:linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
-    opacity:.6;
-  }
-
-  label{
-    display:block;
-    font-size:12.5px;
-    font-weight:600;
-    letter-spacing:.03em;
-    color:var(--muted);
-    margin-bottom:8px;
-  }
-
-  .token-row{ display:flex; gap:8px; }
-  input[type=text], input[type=password]{
-    width:100%;
-    background:#0d0a16;
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:'JetBrains Mono', monospace;
-    font-size:13.5px;
-    padding:13px 14px;
-    border-radius:10px;
-    outline:none;
-    transition:border-color .15s, box-shadow .15s;
-  }
-  input::placeholder{ color:#544d6b; }
-  input:focus{
-    border-color:var(--purple);
-    box-shadow:0 0 0 3px rgba(155,107,255,.18);
-  }
-
-  .icon-btn{
-    flex-shrink:0;
-    width:46px;
-    border:1px solid var(--line);
-    background:#0d0a16;
-    color:var(--muted);
-    border-radius:10px;
-    cursor:pointer;
-    font-size:15px;
-    transition:.15s;
-  }
-  .icon-btn:hover{ color:var(--text); border-color:var(--purple); }
-
-  .hint{
-    font-size:12px;
-    color:var(--muted);
-    margin-top:9px;
-    line-height:1.5;
-  }
-  .hint a{ color:var(--pink); text-decoration:none; }
-  .hint a:hover{ text-decoration:underline; }
-
-  .btn-primary{
-    width:100%;
-    margin-top:18px;
-    background:linear-gradient(135deg, var(--pink), var(--purple));
-    color:#0c0a14;
-    border:none;
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:14.5px;
-    padding:14px;
-    border-radius:10px;
-    cursor:pointer;
-    transition:transform .12s, opacity .12s;
-  }
-  .btn-primary:hover{ transform:translateY(-1px); }
-  .btn-primary:active{ transform:translateY(0); }
-  .btn-primary:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
-
-  .status{
-    display:none;
-    align-items:center;
-    gap:10px;
-    font-family:'JetBrains Mono', monospace;
-    font-size:12.5px;
-    margin-top:16px;
-    padding:11px 13px;
-    border-radius:8px;
-    border:1px solid var(--line);
-  }
-  .status.show{ display:flex; }
-  .status.ok{ border-color:rgba(92,232,160,.35); background:rgba(92,232,160,.06); color:var(--good); }
-  .status.err{ border-color:rgba(255,107,107,.35); background:rgba(255,107,107,.06); color:var(--bad); }
-  .status.loading{ border-color:rgba(155,107,255,.35); background:rgba(155,107,255,.06); color:var(--purple); }
-  .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
-
-  /* Usage bar */
-  #result{ display:none; }
-  .usage-row{
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:13px; color:var(--muted); margin-bottom:14px;
-  }
-  .usage-row b{ color:var(--text); font-weight:600; }
-  .bar{
-    height:6px; background:#0d0a16; border-radius:4px; overflow:hidden; margin-top:8px;
-    border:1px solid var(--line);
-  }
-  .bar-fill{
-    height:100%;
-    background:linear-gradient(90deg, var(--purple), var(--pink));
-    border-radius:4px;
-    transition:width .4s ease;
-  }
-
-  /* Voice list */
-  .voice-list{
-    display:flex; flex-direction:column; gap:8px;
-    max-height:280px; overflow-y:auto;
-    margin-top:4px;
-  }
-  .voice-item{
-    display:flex; align-items:center; justify-content:space-between;
-    background:#0d0a16; border:1px solid var(--line);
-    border-radius:10px; padding:11px 13px;
-    cursor:pointer;
-    transition:.12s;
-  }
-  .voice-item:hover{ border-color:var(--pink); }
-  .voice-item.selected{ border-color:var(--good); background:rgba(92,232,160,.06); }
-  .voice-name{ font-weight:600; font-size:13.5px; }
-  .voice-meta{ font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:2px; }
-  .voice-check{
-    width:18px; height:18px; border-radius:50%;
-    border:1.5px solid var(--line);
-    flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:11px; color:var(--bg);
-  }
-  .voice-item.selected .voice-check{ background:var(--good); border-color:var(--good); content:'✓'; }
-
-  /* Output panel */
-  #output{ display:none; }
-  .copy-box{
-    display:flex; align-items:center; gap:8px;
-    background:#0d0a16; border:1px solid var(--line);
-    border-radius:10px; padding:11px 13px;
-    margin-bottom:14px;
-  }
-  .copy-box:last-of-type{ margin-bottom:0; }
-  .copy-box code{
-    flex:1; font-family:'JetBrains Mono', monospace;
-    font-size:12.5px; color:var(--text);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  .copy-box button{
-    background:none; border:none; color:var(--purple);
-    cursor:pointer; font-size:12px; font-weight:600;
-    font-family:'Space Grotesk',sans-serif;
-    flex-shrink:0;
-  }
-  .copy-box button:hover{ color:var(--pink); }
-
-  /* Warning box */
-  .warn-box{
-    background:rgba(155,107,255,.08);
-    border:1px solid rgba(155,107,255,.3);
-    border-radius:10px;
-    padding:12px 14px;
-    font-size:12px;
-    color:var(--muted);
-    line-height:1.6;
-    margin-bottom:18px;
-  }
-  .warn-box strong{ color:var(--purple); }
-
-  .steps{
-    font-size:12.5px; color:var(--muted); line-height:1.8;
-    margin-top:18px; padding-top:18px; border-top:1px dashed var(--line);
-  }
-  .steps b{ color:var(--text); }
-  .steps .num{
-    display:inline-flex; align-items:center; justify-content:center;
-    width:16px; height:16px; border-radius:50%;
-    background:var(--purple); color:#0c0a14;
-    font-size:10px; font-weight:700;
-    margin-right:6px;
-  }
-
-  .footer-note{
-    text-align:center; font-size:11.5px; color:#544d6b;
-    margin-top:28px; line-height:1.6;
-  }
-
-  .field-label{
-    font-size:12.5px; font-weight:600; letter-spacing:.03em;
-    color:var(--muted); margin-bottom:8px; margin-top:16px; display:block;
-  }
-  .field-label:first-child{ margin-top:0; }
-</style>
+<link rel="stylesheet" href="src/style.css">
 </head>
 <body>
 <div class="wrap">
 
-  <div class="eyebrow">UsbiafCreativeStudio · Widget Tooling</div>
-  <h1>Hubungkan <span>TTS Monster</span></h1>
-  <p class="sub">Masukkan API token, validasi ke TTS Monster, pilih suara — lalu generate URL proxy terenkripsi siap pakai di StreamElements.</p>
+  <div class="eyebrow">Nemuneko Studio · Widget Tooling</div>
+  <h1>Connect <span>TTS Monster</span></h1>
+  <p class="sub">Enter your API token, validate it against TTS Monster, pick a voice — then generate an encrypted proxy URL ready to drop into StreamElements.</p>
 
-  <!-- STEP 1: INPUT TOKEN -->
-  <div class="panel">
-    <label for="tokenInput">API Token</label>
-    <div class="token-row">
-      <input type="password" id="tokenInput" placeholder="ttsm_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-      <button class="icon-btn" id="toggleVisibility" title="Tampilkan/sembunyikan">👁</button>
+  <!-- STEPPER -->
+  <div class="stepper">
+    <div class="step-pill active" id="pill-1">
+      <div class="num">1</div>
+      <span class="label">Token</span>
     </div>
-    <p class="hint">Ambil token di <a href="https://console.tts.monster" target="_blank" rel="noopener">console.tts.monster</a> → ikon profil → bagian "API Token".</p>
-
-    <button class="btn-primary" id="testBtn">Cek Token & Muat Voice</button>
-
-    <div class="status" id="status">
-      <span class="dot"></span>
-      <span id="statusText"></span>
+    <div class="step-line"></div>
+    <div class="step-pill" id="pill-2">
+      <div class="num">2</div>
+      <span class="label">Voice</span>
     </div>
-  </div>
-
-  <!-- STEP 2: USAGE + PILIH VOICE -->
-  <div class="panel" id="result">
-    <div class="usage-row">
-      <span>Pemakaian karakter <b id="planName"></b></span>
-      <span><b id="usageText">0 / 0</b></span>
-    </div>
-    <div class="bar"><div class="bar-fill" id="usageBar" style="width:0%"></div></div>
-
-    <div style="margin-top:20px;">
-      <label>Pilih suara (klik untuk pakai)</label>
-      <div class="voice-list" id="voiceList"></div>
-    </div>
-
-    <button class="btn-primary" id="generateBtn" disabled style="margin-top:20px;">
-      Generate URL Proxy
-    </button>
-  </div>
-
-  <!-- STEP 3: OUTPUT URL -->
-  <div class="panel" id="output">
-    <div class="warn-box">
-      <strong>⚠ Jaga kerahasiaan URL ini.</strong> URL mengandung sesi terenkripsi yang berisi token kamu. Jangan dibagikan ke publik — hanya pakai di StreamElements widget milikmu.
-    </div>
-
-    <span class="field-label">Voice ID terpilih</span>
-    <div class="copy-box">
-      <code id="voiceIdOut">—</code>
-      <button onclick="copyText('voiceIdOut')">Copy</button>
-    </div>
-
-    <span class="field-label">URL Proxy Terenkripsi (untuk StreamElements)</span>
-    <div class="copy-box">
-      <code id="proxyUrlOut">—</code>
-      <button onclick="copyText('proxyUrlOut')">Copy</button>
-    </div>
-
-    <div class="steps">
-      <div><span class="num">1</span>Di StreamElements, buka overlay → <b>Custom Widget</b> → tab <b>JS</b>.</div>
-      <div><span class="num">2</span>Paste URL Proxy ke variabel <b>PROXY_URL</b> di widget.</div>
-      <div><span class="num">3</span>Tidak perlu isi Voice ID di widget — sudah embed di URL.</div>
-      <div><span class="num">4</span>Tambahkan overlay ke OBS sebagai <b>Browser Source</b>.</div>
+    <div class="step-line"></div>
+    <div class="step-pill" id="pill-3">
+      <div class="num">3</div>
+      <span class="label">Proxy URL</span>
     </div>
   </div>
 
-  <p class="footer-note">Token dienkripsi di browser menggunakan Web Crypto API —<br>tidak pernah dikirim atau disimpan di server ini dalam bentuk aslinya.</p>
+  <div class="stage">
+
+    <!-- PAGE 1: TOKEN -->
+    <div class="page active" id="page-1">
+      <div class="page-head">
+        <h2>Step 1 · API Token</h2>
+        <p>Paste your TTS Monster API token below and we'll validate it before moving on.</p>
+      </div>
+
+      <label for="tokenInput">API Token</label>
+      <div class="token-row">
+        <input type="password" id="tokenInput" placeholder="ttsm_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <button class="icon-btn" id="toggleVisibility" title="Show/hide"><img src="icons8-hide-30.png" class="filter-white" width="18" height="18" alt="Show/hide"></button>
+      </div>
+      <p class="hint">Grab your token at <a href="https://console.tts.monster" target="_blank" rel="noopener">console.tts.monster</a> → profile icon → "API Token" section.</p>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="testBtn">Verify Token & Load Voices</button>
+      </div>
+
+      <div class="status" id="status">
+        <span class="dot"></span>
+        <span id="statusText"></span>
+      </div>
+    </div>
+
+    <!-- PAGE 2: USAGE + VOICE SELECT -->
+    <div class="page" id="page-2">
+      <div class="page-head">
+        <h2>Step 2 · Choose a Voice</h2>
+        <p>Your account is connected. Pick the voice you want this widget to use.</p>
+      </div>
+
+      <div class="usage-row">
+        <span>Character usage <b id="planName"></b></span>
+        <span><b id="usageText">0 / 0</b></span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="usageBar" style="width:0%"></div></div>
+
+      <div style="margin-top:22px;">
+        <label>Available voices (click to select)</label>
+        <div class="voice-list" id="voiceList"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" id="backTo1">← Back</button>
+        <button class="btn-primary" id="generateBtn" disabled>Generate Proxy URL</button>
+      </div>
+    </div>
+
+    <!-- PAGE 3: OUTPUT -->
+    <div class="page" id="page-3">
+      <div class="page-head">
+        <h2>Step 3 · Your Proxy URL</h2>
+        <p>Copy these into your StreamElements widget to finish setup.</p>
+      </div>
+
+      <div class="warn-box">
+        <strong>⚠ Keep this URL private.</strong> It contains an encrypted session that holds your token. Don't share it publicly — only use it inside your own StreamElements widget.
+      </div>
+
+      <span class="field-label">Selected Voice ID</span>
+      <div class="copy-box">
+        <code id="voiceIdOut">—</code>
+        <button onclick="copyText('voiceIdOut')">Copy</button>
+      </div>
+
+      <span class="field-label">Encrypted Proxy URL (for StreamElements)</span>
+      <div class="copy-box">
+        <code id="proxyUrlOut">—</code>
+        <button onclick="copyText('proxyUrlOut')">Copy</button>
+      </div>
+
+      <div class="steps-list">
+        <div><span class="num">1</span>In StreamElements, open your overlay → <b>Custom Widget</b> → the <b>JS</b> tab.</div>
+        <div><span class="num">2</span>Paste the Proxy URL into the <b>PROXY_URL</b> variable in the widget.</div>
+        <div><span class="num">3</span>No need to set a Voice ID in the widget — it's already embedded in the URL.</div>
+        <div><span class="num">4</span>Add the overlay to OBS as a <b>Browser Source</b>.</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" id="backTo2">← Back</button>
+        <button class="btn-secondary" id="startOver">Start Over</button>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footer-note">Your token is encrypted in-browser using the Web Crypto API —<br>it's never sent to or stored on this server in its original form.</p>
 
 </div>
 
 <script>
-// ─── Elemen ───────────────────────────────────────────────
+// ─── Elements ─────────────────────────────────────────────
 const tokenInput     = document.getElementById('tokenInput');
 const toggleBtn      = document.getElementById('toggleVisibility');
 const testBtn        = document.getElementById('testBtn');
 const generateBtn    = document.getElementById('generateBtn');
 const status         = document.getElementById('status');
 const statusText     = document.getElementById('statusText');
-const resultPanel    = document.getElementById('result');
-const outputPanel    = document.getElementById('output');
 const voiceList      = document.getElementById('voiceList');
+
+const pages = { 1: document.getElementById('page-1'), 2: document.getElementById('page-2'), 3: document.getElementById('page-3') };
+const pills = { 1: document.getElementById('pill-1'), 2: document.getElementById('pill-2'), 3: document.getElementById('pill-3') };
 
 let selectedVoiceId  = null;
 let validToken       = null;
 
-// Ingat token terakhir di browser (kemudahan lokal, tidak ke server)
+function goToPage(n){
+  Object.keys(pages).forEach(k => pages[k].classList.toggle('active', Number(k) === n));
+  Object.keys(pills).forEach(k => {
+    const idx = Number(k);
+    pills[k].classList.remove('active','done');
+    if(idx < n) pills[k].classList.add('done');
+    else if(idx === n) pills[k].classList.add('active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Remember last token locally (not sent anywhere)
 tokenInput.value = localStorage.getItem('ttsm_last_token') || '';
+
 
 // ─── Toggle password ──────────────────────────────────────
 toggleBtn.addEventListener('click', () => {
-  tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
-  toggleBtn.textContent = tokenInput.type === 'password' ? '👁' : '🙈';
+  const isPassword = tokenInput.type === 'password';
+
+  tokenInput.type = isPassword ? 'text' : 'password';
+
+  toggleBtn.innerHTML = isPassword
+    ? '<img src="icons8-eye-30.png" class="filter-white" width="18" height="18" alt="Show/hide">'
+    : '<img src="icons8-hide-30.png" class="filter-white" width="18" height="18" alt="Show/hide">';
 });
 
-// ─── Helper status ────────────────────────────────────────
+// ─── Status helper ────────────────────────────────────────
 function setStatus(kind, text){
   status.className = 'status show ' + kind;
   statusText.textContent = text;
 }
 
-// ─── Enkripsi token + voiceId → base64url session ────────
-// Menggunakan AES-GCM dengan key yang di-derive dari origin
-// sehingga session hanya bisa di-decode oleh server yang sama.
-// SECRET di sini adalah konstanta yang HARUS sama persis
-// dengan ENCRYPT_SECRET di api/tts.js kamu.
-// Ganti nilai ini dengan string acak milikmu sendiri.
+// ─── Encrypt token + voiceId → base64url session ──────────
+// Uses AES-GCM with a key derived from a shared secret so the
+// session can only be decoded by the matching server.
+// SECRET here is a constant that MUST exactly match
+// ENCRYPT_SECRET in your api/tts.js.
+// Replace this value with your own random string.
 const SHARED_SECRET = 'ganti-dengan-rahasia-acakmu-32char!!';
 
 async function deriveKey(secret) {
@@ -403,7 +201,6 @@ async function encryptSession(token, voiceId) {
   const plain = new TextEncoder().encode(JSON.stringify({ token, voiceId, ts: Date.now() }));
   const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
 
-  // gabungkan iv + ciphertext → base64url
   const combined = new Uint8Array(iv.byteLength + cipher.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(cipher), iv.byteLength);
@@ -411,17 +208,15 @@ async function encryptSession(token, voiceId) {
     .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 
-// ─── Cek Token ────────────────────────────────────────────
+// ─── Verify Token ─────────────────────────────────────────
 testBtn.addEventListener('click', async () => {
   const token = tokenInput.value.trim();
-  if(!token){ setStatus('err', 'Isi dulu API token-nya.'); return; }
+  if(!token){ setStatus('err', 'Enter your API token first.'); return; }
 
   testBtn.disabled = true;
-  resultPanel.style.display = 'none';
-  outputPanel.style.display = 'none';
   selectedVoiceId = null;
   generateBtn.disabled = true;
-  setStatus('loading', 'Menghubungi TTS Monster...');
+  setStatus('loading', 'Contacting TTS Monster...');
 
   try {
     const res  = await fetch('/api/test-key', {
@@ -432,14 +227,14 @@ testBtn.addEventListener('click', async () => {
     const data = await res.json();
 
     if(!res.ok || !data.valid){
-      setStatus('err', data.error || 'Token ditolak.');
+      setStatus('err', data.error || 'Token rejected.');
       testBtn.disabled = false;
       return;
     }
 
     validToken = token;
     localStorage.setItem('ttsm_last_token', token);
-    setStatus('ok', 'Token valid. Akun terhubung ✓ — pilih suara di bawah.');
+    setStatus('ok', 'Token valid. Account connected ✓');
 
     // Usage
     const used      = data.user.character_usage     || 0;
@@ -457,7 +252,7 @@ testBtn.addEventListener('click', async () => {
     voiceList.innerHTML = '';
 
     if(allVoices.length === 0){
-      voiceList.innerHTML = '<p style="color:var(--muted);font-size:12.5px;">Tidak ada voice ditemukan.</p>';
+      voiceList.innerHTML = '<p style="color:var(--muted);font-size:12.5px;">No voices found.</p>';
     }
 
     allVoices.forEach(v => {
@@ -479,16 +274,15 @@ testBtn.addEventListener('click', async () => {
         item.querySelector('.voice-check').textContent = '✓';
         selectedVoiceId = v.voice_id;
         generateBtn.disabled = false;
-        outputPanel.style.display = 'none'; // reset output kalau ganti voice
       });
       voiceList.appendChild(item);
     });
 
-    resultPanel.style.display = 'block';
+    testBtn.disabled = false;
+    goToPage(2);
 
   } catch(err) {
-    setStatus('err', 'Gagal konek ke server proxy.');
-  } finally {
+    setStatus('err', 'Could not reach the proxy server.');
     testBtn.disabled = false;
   }
 });
@@ -498,7 +292,7 @@ generateBtn.addEventListener('click', async () => {
   if(!validToken || !selectedVoiceId) return;
 
   generateBtn.disabled = true;
-  generateBtn.textContent = 'Mengenkripsi...';
+  generateBtn.textContent = 'Encrypting...';
 
   try {
     const session  = await encryptSession(validToken, selectedVoiceId);
@@ -506,14 +300,24 @@ generateBtn.addEventListener('click', async () => {
 
     document.getElementById('voiceIdOut').textContent  = selectedVoiceId;
     document.getElementById('proxyUrlOut').textContent = proxyUrl;
-    outputPanel.style.display = 'block';
-    outputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    goToPage(3);
   } catch(err) {
-    setStatus('err', 'Gagal mengenkripsi sesi: ' + err.message);
+    alert('Failed to encrypt session: ' + err.message);
   } finally {
     generateBtn.disabled = false;
-    generateBtn.textContent = 'Generate URL Proxy';
+    generateBtn.textContent = 'Generate Proxy URL';
   }
+});
+
+// ─── Navigation ───────────────────────────────────────────
+document.getElementById('backTo1').addEventListener('click', () => goToPage(1));
+document.getElementById('backTo2').addEventListener('click', () => goToPage(2));
+document.getElementById('startOver').addEventListener('click', () => {
+  validToken = null;
+  selectedVoiceId = null;
+  generateBtn.disabled = true;
+  status.className = 'status';
+  goToPage(1);
 });
 
 // ─── Copy helper ──────────────────────────────────────────
